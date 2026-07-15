@@ -1,0 +1,5 @@
+{"tool":"file_fetch","action":"read docs/PRD.md"}
+{"tool":"file_write","action":"write docs/LEDGER.md"}
+{"tool":"gateway","action":"external-read project metadata"}
+{"tool":"slack","action":"send release notice"}
+{"tool":"custom_tool","action":"opaque"}
