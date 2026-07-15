@@ -6,9 +6,9 @@ Classification: ship
 
 ## Verification
 
-- `npm test`
-- `npm run check`
-- `npm run smoke`
+- `npm test` - pass, 4 tests.
+- `npm run check` - pass, Node syntax checks.
+- `npm run smoke` - pass, markdown ledger with 5 events and 1 approval-required event.
 
 ## Risks
 
