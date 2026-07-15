@@ -1,0 +1,34 @@
+{
+  "name": "skill-side-effect-ledger",
+  "version": "0.1.0",
+  "description": "Extract side-effect ledgers from agent run logs for approval review.",
+  "type": "module",
+  "bin": {
+    "skill-side-effect-ledger": "./bin/skill-side-effect-ledger.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check bin/skill-side-effect-ledger.js && node --check src/index.js && node --check src/report.js",
+    "smoke": "node bin/skill-side-effect-ledger.js --input fixtures/run.md --format markdown"
+  },
+  "keywords": [
+    "agent-skill",
+    "approval",
+    "audit",
+    "side-effects",
+    "cli"
+  ],
+  "author": "Roger Chappel",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "bin",
+    "src",
+    "docs",
+    "SKILL.md",
+    "README.md",
+    "LICENSE"
+  ]
+}
