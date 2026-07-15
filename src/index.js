@@ -64,7 +64,7 @@ export function classifyEvent(event) {
     rationale: "Unrecognized action; reviewer should inspect it."
   };
 
-  if (/(message|slack|email|send|publish|deploy|gh release|release|connector.*write|external-write)/.test(haystack)) {
+  if (/(message|slack|email|send|publish|deploy|gh release|connector.*write|external-write)/.test(haystack)) {
     return {
       ...entry,
       category: "external-write",
