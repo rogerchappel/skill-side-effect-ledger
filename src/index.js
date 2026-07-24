@@ -55,52 +55,81 @@ export function parseJsonl(text) {
 }
 
 export function classifyEvent(event) {
-  const haystack = `${event.tool} ${JSON.stringify(event.action)}`.toLowerCase();
+  const tool = String(event.tool ?? "unknown").toLowerCase();
+  const action = typeof event.action === "string" ? event.action : JSON.stringify(event.action);
+  const command = action.trim().toLowerCase();
   const entry = {
     ...event,
-    action: typeof event.action === "string" ? event.action : JSON.stringify(event.action),
+    action,
     category: "unknown",
     approvalRequired: false,
     rationale: "Unrecognized action; reviewer should inspect it."
   };
 
-  if (/(message|slack|email|send|publish|deploy|gh release|connector.*write|external-write)/.test(haystack)) {
-    return {
-      ...entry,
-      category: "external-write",
-      approvalRequired: true,
-      rationale: "Action may write to an external system or notify another person."
-    };
+  if (isExternalWrite(tool, command)) {
+    return classified(entry, "external-write", true, "Action writes to an external system or notifies another person.");
   }
 
-  if (/(web_fetch|web_search|browser|curl|http|get|external-read)/.test(haystack)) {
-    return {
-      ...entry,
-      category: "external-read",
-      approvalRequired: false,
-      rationale: "Action reads data from a remote or external source."
-    };
+  if (isExternalRead(tool, command)) {
+    return classified(entry, "external-read", false, "Action reads data from a remote or external source.");
   }
 
-  if (/(apply_patch|file_write|write|mkdir|mv|rm|git commit|npm version|local-write)/.test(haystack)) {
-    return {
-      ...entry,
-      category: "local-write",
-      approvalRequired: false,
-      rationale: "Action may mutate local workspace state."
-    };
+  if (isLocalWrite(tool, command)) {
+    return classified(entry, "local-write", false, "Action mutates local workspace state.");
   }
 
-  if (/(cat|sed|rg|ls|git status|git diff|read|file_fetch|local-read)/.test(haystack)) {
-    return {
-      ...entry,
-      category: "local-read",
-      approvalRequired: false,
-      rationale: "Action reads local workspace state."
-    };
+  if (isLocalRead(tool, command)) {
+    return classified(entry, "local-read", false, "Action reads local workspace state.");
   }
 
   return entry;
+}
+
+function classified(entry, category, approvalRequired, rationale) {
+  return { ...entry, category, approvalRequired, rationale };
+}
+
+function isExternalWrite(tool, command) {
+  if (/^(message|slack|email|send|publish|deploy|external-write)$/.test(tool)) return true;
+  if (/^external-write(?:\s|$)/.test(command)) return true;
+  if (/^connector[._-].*write$/.test(tool)) return true;
+  if (/\bgit\s+push\b/.test(command)) return true;
+  if (/\bgh\s+(?:pr|issue)\s+(?:create|edit|close|merge|comment|review)\b/.test(command)) return true;
+  if (/\bgh\s+release\s+(?:create|edit|delete|upload)\b/.test(command)) return true;
+  if (/\b(?:npm|pnpm|yarn)\s+publish\b/.test(command)) return true;
+  if (/\bcurl\b/.test(command)) {
+    const mutatingMethod = /(?:^|\s)(?:-x|--request)\s*(?:=|\s)\s*(?:post|put|patch|delete)\b/.test(command);
+    const uploadsData = /(?:^|\s)(?:-d|--data(?:-ascii|-binary|-raw|-urlencode)?|--form)(?:\s|=)/.test(command);
+    if (mutatingMethod || uploadsData) return true;
+  }
+  return false;
+}
+
+function isExternalRead(tool, command) {
+  if (/^(web_fetch|web_search|browser|external-read)$/.test(tool)) return true;
+  if (/^external-read(?:\s|$)/.test(command)) return true;
+  if (/\bgit\s+(?:fetch|pull|clone|ls-remote)\b/.test(command)) return true;
+  if (/\bgh\s+(?:pr|issue|release|run)\s+(?:list|view|status|checks|download)\b/.test(command)) return true;
+  if (/\bcurl\b/.test(command)) {
+    return !/(?:^|\s)(?:-x|--request)\s*(?:=|\s)\s*(?:post|put|patch|delete)\b/.test(command);
+  }
+  return false;
+}
+
+function isLocalWrite(tool, command) {
+  if (/^(apply_patch|file_write|local-write)$/.test(tool)) return true;
+  if (/(?:^|[^<])>{1,2}(?!>)/.test(command)) return true;
+  if (/(?:^|[;&|]\s*|\s)(?:mkdir|touch|mv|rm|cp|install|truncate|tee)\b/.test(command)) return true;
+  if (/\bgit\s+(?:add|commit|checkout|switch|merge|rebase|reset|restore|clean|worktree)\b/.test(command)) return true;
+  if (/\b(?:npm|pnpm|yarn)\s+(?:install|add|remove|version)\b/.test(command)) return true;
+  return false;
+}
+
+function isLocalRead(tool, command) {
+  if (/^(read|file_fetch|local-read)$/.test(tool)) return true;
+  if (/(?:^|[;&|]\s*|\s)(?:cat|sed|rg|grep|ls|find|head|tail|pwd|stat|wc)\b/.test(command)) return true;
+  if (/\bgit\s+(?:status|diff|log|show|branch|rev-parse)\b/.test(command)) return true;
+  return false;
 }
 
 export function shouldFail(ledger, failOn = "external-write") {
