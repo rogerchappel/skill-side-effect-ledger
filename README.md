@@ -34,6 +34,13 @@ The CLI is read-only. It does not call connectors, write ledgers to disk, send m
 
 ## Limitations
 
-- Detection is rule-based and intentionally conservative.
+- Detection is rule-based and intentionally conservative. Recognized shell patterns include:
+  - Git remote reads (`fetch`, `pull`, `clone`, `ls-remote`) and writes (`push`).
+  - GitHub CLI PR, issue, release, and workflow reads; mutating PR, issue, and release commands.
+  - Read-only `curl` requests and mutating `POST`, `PUT`, `PATCH`, or `DELETE` requests, including requests that supply data.
+  - Common local filesystem readers, writers, shell redirection, and Git workspace mutations.
+  - Package publication with npm, pnpm, or Yarn.
+- Command recognition does not interpret shell variables, aliases, scripts, or commands hidden inside another program. Those remain unknown unless another explicit rule applies.
+- If a command combines operations, the highest-impact recognized direction wins: external writes, then external reads, then local writes, then local reads.
 - Unknown tool names are surfaced for review instead of ignored.
 - The ledger summarizes evidence; it does not prove that every side effect was captured.
