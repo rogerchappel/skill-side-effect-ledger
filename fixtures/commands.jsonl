@@ -1,0 +1,13 @@
+{"tool":"exec_command","command":"git push origin main"}
+{"tool":"exec_command","command":"gh pr create --title update"}
+{"tool":"exec_command","command":"curl -X POST https://example.test/jobs"}
+{"tool":"exec_command","command":"curl --data ready=true https://example.test/jobs"}
+{"tool":"exec_command","command":"npm publish"}
+{"tool":"exec_command","command":"git fetch origin"}
+{"tool":"exec_command","command":"curl https://example.test/jobs"}
+{"tool":"exec_command","command":"gh pr view 42"}
+{"tool":"exec_command","command":"echo hello > result.txt"}
+{"tool":"exec_command","command":"mkdir output"}
+{"tool":"exec_command","command":"git status --short"}
+{"tool":"exec_command","command":"rg TODO src"}
+{"tool":"exec_command","command":"frobnicate workspace"}
