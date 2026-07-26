@@ -28,6 +28,18 @@ Options:
 - `--format markdown|json` controls output.
 - `--fail-on unknown|external-write|none` controls exit behavior.
 
+## GitHub CLI Coverage
+
+The command classifier treats GitHub CLI operations according to their side
+effects:
+
+- `gh workflow run` and `gh run cancel|rerun|delete` are external writes that
+  require approval.
+- `gh run list|view|status|checks|download` are external reads.
+
+Unrecognized `gh workflow` and `gh run` subcommands remain `unknown` so that
+new or ambiguous GitHub CLI behavior is surfaced for human review.
+
 ## Safety Notes
 
 The CLI is read-only. It does not call connectors, write ledgers to disk, send messages, or approve actions.
