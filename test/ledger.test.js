@@ -55,6 +55,56 @@ test("jsonl events are classified conservatively", async () => {
   assert.equal(shouldFail(ledger, "none"), false);
 });
 
+test("GitHub Actions mutations require approval while reads do not", async () => {
+  const ledger = await buildLedger("fixtures/github-actions.jsonl");
+
+  assert.deepEqual(ledger.summary, {
+    "local-read": 0,
+    "local-write": 0,
+    "external-read": 5,
+    "external-write": 4,
+    unknown: 1,
+    total: 10,
+    approvalRequired: 4
+  });
+  assert.deepEqual(
+    ledger.entries.map(({ category, approvalRequired }) => ({ category, approvalRequired })),
+    [
+      { category: "external-write", approvalRequired: true },
+      { category: "external-write", approvalRequired: true },
+      { category: "external-write", approvalRequired: true },
+      { category: "external-write", approvalRequired: true },
+      { category: "external-read", approvalRequired: false },
+      { category: "external-read", approvalRequired: false },
+      { category: "external-read", approvalRequired: false },
+      { category: "external-read", approvalRequired: false },
+      { category: "external-read", approvalRequired: false },
+      { category: "unknown", approvalRequired: false }
+    ]
+  );
+});
+
+test("cli exits non-zero on GitHub Actions mutations", () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      "bin/skill-side-effect-ledger.js",
+      "--input",
+      "fixtures/github-actions.jsonl",
+      "--format",
+      "json",
+      "--fail-on",
+      "external-write"
+    ],
+    { encoding: "utf8" }
+  );
+
+  assert.equal(result.status, 1);
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.summary["external-write"], 4);
+  assert.equal(parsed.summary.approvalRequired, 4);
+});
+
 test("cli emits markdown and exits non-zero on external writes", () => {
   const result = spawnSync(process.execPath, ["bin/skill-side-effect-ledger.js", "--input", "fixtures/run.md"], {
     encoding: "utf8"
