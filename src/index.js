@@ -96,6 +96,8 @@ function isExternalWrite(tool, command) {
   if (/\bgit\s+push\b/.test(command)) return true;
   if (/\bgh\s+(?:pr|issue)\s+(?:create|edit|close|merge|comment|review)\b/.test(command)) return true;
   if (/\bgh\s+release\s+(?:create|edit|delete|upload)\b/.test(command)) return true;
+  if (/\bgh\s+workflow\s+run\b/.test(command)) return true;
+  if (/\bgh\s+run\s+(?:cancel|rerun|delete)\b/.test(command)) return true;
   if (/\b(?:npm|pnpm|yarn)\s+publish\b/.test(command)) return true;
   if (/\bcurl\b/.test(command)) {
     const mutatingMethod = /(?:^|\s)(?:-x|--request)\s*(?:=|\s)\s*(?:post|put|patch|delete)\b/.test(command);
