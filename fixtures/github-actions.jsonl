@@ -1,0 +1,10 @@
+{"tool":"exec_command","command":"gh workflow run ci.yml"}
+{"tool":"exec_command","command":"gh run cancel 123"}
+{"tool":"exec_command","command":"gh run rerun 123"}
+{"tool":"exec_command","command":"gh run delete 123"}
+{"tool":"exec_command","command":"gh run list"}
+{"tool":"exec_command","command":"gh run view 123"}
+{"tool":"exec_command","command":"gh run status"}
+{"tool":"exec_command","command":"gh run checks 123"}
+{"tool":"exec_command","command":"gh run download 123"}
+{"tool":"exec_command","command":"gh run mysterious 123"}
