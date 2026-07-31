@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
 import { buildLedger, classifyEvent, shouldFail } from "../src/index.js";
 
@@ -53,6 +56,31 @@ test("jsonl events are classified conservatively", async () => {
   assert.equal(ledger.summary.unknown, 1);
   assert.equal(shouldFail(ledger, "unknown"), true);
   assert.equal(shouldFail(ledger, "none"), false);
+});
+
+test("jsonl detection is case-insensitive", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "side-effect-ledger-"));
+  const input = join(directory, "RUN.JSONL");
+  await writeFile(input, '{"tool":"message","action":"send update"}\n');
+
+  const ledger = await buildLedger(input);
+
+  assert.equal(ledger.summary.total, 1);
+  assert.equal(ledger.summary["external-write"], 1);
+  assert.equal(ledger.entries[0].source, "jsonl");
+});
+
+test("jsonl entries retain physical line numbers across blank lines", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "side-effect-ledger-"));
+  const input = join(directory, "lines.jsonl");
+  await writeFile(input, '{"tool":"read","action":"cat file"}\n\nnot-json\n');
+
+  const ledger = await buildLedger(input);
+
+  assert.equal(ledger.entries[0].line, 1);
+  assert.equal(ledger.entries[0].action, "cat file");
+  assert.equal(ledger.entries[1].line, 3);
+  assert.match(ledger.entries[1].action, /^invalid json: /);
 });
 
 test("GitHub Actions mutations require approval while reads do not", async () => {
@@ -123,6 +151,17 @@ test("cli can be configured as report-only", () => {
   assert.equal(result.status, 0);
   const parsed = JSON.parse(result.stdout);
   assert.equal(parsed.summary.total, 5);
+});
+
+test("cli argument errors use usage exit code without a stack trace", () => {
+  for (const args of [["--bogus"], ["--format", "yaml"], ["--input"]]) {
+    const result = spawnSync(process.execPath, ["bin/skill-side-effect-ledger.js", ...args], { encoding: "utf8" });
+
+    assert.equal(result.status, 2, args.join(" "));
+    assert.match(result.stderr, /^skill-side-effect-ledger: /);
+    assert.doesNotMatch(result.stderr, /\n\s+at /);
+    assert.equal(result.stdout, "");
+  }
 });
 
 test("cli classifies representative command fixtures end to end", () => {
