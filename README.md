@@ -13,7 +13,9 @@ node bin/skill-side-effect-ledger.js --input fixtures/run.md --format json
 ## Supported Inputs
 
 - Markdown transcripts with tool-call style lines.
-- JSONL logs where each line contains an event object.
+- JSONL logs where each non-blank line contains an event object. The `.jsonl`
+  filename extension is matched case-insensitively, and reported line numbers
+  always refer to physical source lines, including when blank lines occur.
 
 ## CLI
 
@@ -27,6 +29,11 @@ Options:
 - `--input <file>` reads a markdown or JSONL log.
 - `--format markdown|json` controls output.
 - `--fail-on unknown|external-write|none` controls exit behavior.
+
+Invalid options and option values produce a concise
+`skill-side-effect-ledger:` diagnostic on stderr and exit with status 2. Input
+and parsing failures use the same diagnostic and exit status without a stack
+trace.
 
 ## GitHub CLI Coverage
 
