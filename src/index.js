@@ -4,7 +4,7 @@ const CLASS_ORDER = ["local-read", "local-write", "external-read", "external-wri
 
 export async function buildLedger(inputPath) {
   const text = await readFile(inputPath, "utf8");
-  const events = inputPath.endsWith(".jsonl") ? parseJsonl(text) : parseMarkdown(text);
+  const events = /\.jsonl$/i.test(inputPath) ? parseJsonl(text) : parseMarkdown(text);
   const entries = events.map(classifyEvent);
   return {
     summary: summarize(entries),
@@ -33,20 +33,21 @@ export function parseMarkdown(text) {
 export function parseJsonl(text) {
   return text
     .split(/\r?\n/)
-    .filter((line) => line.trim().length > 0)
-    .map((line, index) => {
+    .map((line, index) => ({ line, sourceLine: index + 1 }))
+    .filter(({ line }) => line.trim().length > 0)
+    .map(({ line, sourceLine }) => {
       try {
         const parsed = JSON.parse(line);
         return {
           source: "jsonl",
-          line: index + 1,
+          line: sourceLine,
           tool: parsed.tool ?? parsed.name ?? parsed.type ?? "unknown",
           action: parsed.action ?? parsed.command ?? parsed.args ?? parsed.input ?? parsed
         };
       } catch (error) {
         return {
           source: "jsonl",
-          line: index + 1,
+          line: sourceLine,
           tool: "unknown",
           action: `invalid json: ${error.message}`
         };
