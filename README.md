@@ -5,10 +5,14 @@
 ## Quickstart
 
 ```bash
-npm test
-npm run smoke
-node bin/skill-side-effect-ledger.js --input fixtures/run.md --format json
+printf '%s\n' 'Called read_file on README.md' > run.md
+npx skill-side-effect-ledger --input run.md --format markdown
+npx skill-side-effect-ledger --input run.md --format json --fail-on none
 ```
+
+From a source checkout, run `npm test`, `npm run smoke`, and
+`npm run package-smoke`. The package smoke check builds and extracts the npm
+tarball, then runs the packaged fixture through the distributed CLI.
 
 ## Supported Inputs
 
