@@ -8,8 +8,9 @@
   },
   "scripts": {
     "test": "node --test",
-    "check": "node --check bin/skill-side-effect-ledger.js && node --check src/index.js && node --check src/report.js",
-    "smoke": "node bin/skill-side-effect-ledger.js --input fixtures/run.md --format markdown --fail-on none"
+    "check": "node --check bin/skill-side-effect-ledger.js && node --check src/index.js && node --check src/report.js && node --check scripts/package-smoke.js",
+    "smoke": "node bin/skill-side-effect-ledger.js --input fixtures/run.md --format markdown --fail-on none",
+    "package-smoke": "node scripts/package-smoke.js"
   },
   "keywords": [
     "agent-skill",
@@ -26,6 +27,8 @@
   "files": [
     "bin",
     "src",
+    "scripts",
+    "fixtures",
     "docs",
     "SKILL.md",
     "README.md",
