@@ -4,10 +4,11 @@
 
 ## Quickstart
 
+No dependency installation is required. With Node.js 20 or newer, use the CLI
+from the npm package:
+
 ```bash
-printf '%s\n' 'Called read_file on README.md' > run.md
-npx skill-side-effect-ledger --input run.md --format markdown
-npx skill-side-effect-ledger --input run.md --format json --fail-on none
+npm exec --yes --package=skill-side-effect-ledger -- skill-side-effect-ledger --input run.md --format markdown
 ```
 
 From a source checkout, run `npm test`, `npm run smoke`, and
